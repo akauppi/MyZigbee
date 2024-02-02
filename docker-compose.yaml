@@ -1,0 +1,68 @@
+#
+# My Zigbee
+#
+# Based on -> https://www.zigbee2mqtt.io/guide/getting-started/#installation
+#
+
+# Note: No 'version' field. This allows to use 'healtcheck'.
+#version: '3.8'
+
+services:
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt:latest
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    environment:
+      - TZ=Europe/Helsinki
+    devices:
+      - /dev/ttyACM0:/dev/ttyZIGBEE
+    volumes:
+      - ./shared:/app/data:rw
+      - /run/udev:/run/udev:ro
+    ports:
+      - "8080:8080"
+        
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+
+    volumes:
+      # Had difficulty sharing 'shared.mosquitto' as one folder - container overwrote access rights.
+      # Mosquitto docs mention sharing separately, so doing so.
+      #
+      # Mosquitto seems to need write access to the config.
+      # <<
+      #   chown: /mosquitto/config/mosquitto.conf: Read-only file system
+      #   chown: /mosquitto/config: Read-only file system
+      #   chown: /mosquitto/config: Read-only file system
+      # <<
+      #
+      - ./shared.mosquitto/config:/mosquitto/config:rw
+      - ./shared.mosquitto/data:/mosquitto/data:delegated
+      - ./shared.mosquitto/log:/mosquitto/log:delegated
+
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    #
+    # Health check to keep dependent services from starting when we're still launching. Makes things more determenistic.
+    #
+    # Based on -> https://github.com/eclipse/mosquitto/issues/1270#issuecomment-601039291
+    #
+    # NOTE: THIS IS NOT PROPERLY TESTED. Tune the command if necessary. Better to use 'mosquitto_sub'
+    #     (to test actual MQTT) but if needed, one could add a Websocket end point and check it with 'wget'.
+    #     'eclipse-mosquitto:2.0' image has 'wget', but not 'curl'.
+    #
+    # Note: Docker Compose officially only takes '1' as "unhealthy".
+    #
+    # Note: This DOES cause some extra logging.. (tbd. how to omit that?)
+    #
+    healthcheck:
+      test: mosquitto_sub -t '$$SYS/#' -E || exit 1
+      #start_period: 3s   # try long (>50s) 'interval' but one fast initial try tbd. (less logging)
+      interval: 5s
+      timeout: 3s
+      retries: 5

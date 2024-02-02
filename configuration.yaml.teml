@@ -1,0 +1,15 @@
+# Copy this to 'shared/configuration.yaml' before operating.
+#
+# Zigbee2MQTT will replace the 'network_key' entry with a generated secret on first launch.
+# REMOVE THIS NOTION AFTER COPYING.
+
+permit_join: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mqtt
+serial:
+  port: /dev/ttyZIGBEE
+frontend:
+  port: 8080
+advanced:
+  network_key: GENERATE

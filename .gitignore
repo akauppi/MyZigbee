@@ -1,2 +1,6 @@
-/store/
+/shared/
+/shared.mosquitto/
+
+# Firmwares
+/ncp-*.gbl
 

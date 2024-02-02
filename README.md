@@ -73,6 +73,16 @@ Sonoff gives 0 guidance; likely they assume one to just shoot `SETUP` with no sa
 >This is covered in [MyZWave](...).
 
 
+### Copy `configuration.yaml.teml` (or similar; template)
+
+```
+$ cp configuration.yaml.te* shared/configuration.yaml
+```
+
+You can add the one in `shared` to your version control, but better not push it. After first `docker compose up`
+it contains the 128-bit secret for your Zigbee network.
+
+
 ## Steps
 
 1. Attach the USB stick to WSL
@@ -109,18 +119,29 @@ Sonoff gives 0 guidance; likely they assume one to just shoot `SETUP` with no sa
 2. Launch the Docker container
 
    ```
-   $ docker compose up zigbee2mqtt
+   $ dc up -d
+   [+] Running 2/2
+    ✔ Container myzigbee-mosquitto-1    
+       Healthy                                                                         6.7s
+    ✔ Container zigbee2mqtt           Started
    ```
 
-   ![](.images/zwave-js-ui-up.png)   
+   >For seeing the logs, check Docker Desktop > `Containers` > (pick) > `Logs`
 
-   Leave the software running.
+   <p />
+   >Here, I had a problem with:
+   >
+   >![](.images/errors.png)
 
-3. Open [localhost:8091](http://localhost)
 
-   ![](.images/zwave-js-ui-home.png)
+<font color=red>STUCK. Dongle not recognized.
+</font>
+
+
+3. Open [localhost:8080](http://localhost:8080)
+
    
-   >In Z-Wave, the controller remembers the devices it's been paired with.
+
 
 4. Attach the devices
 
@@ -249,6 +270,11 @@ So far, giving Sonoff only ⭐️⭐️⭐️ stars out of 5.
 
 
 ## Additional
+
+### Flashing
+
+See [Flashing](./Flashing.md)
+
 
 <!-- tbd.
 ### Second dongle as repeater
