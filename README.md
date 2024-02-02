@@ -128,24 +128,22 @@ it contains the 128-bit secret for your Zigbee network.
 
    >For seeing the logs, check Docker Desktop > `Containers` > (pick) > `Logs`
 
-   <p />
-   >Here, I had a problem with:
-   >
-   >![](.images/errors.png)
+   ---
+
+   >Note: If there is an error communicating with the dongle (but [flashing](./Flashing.md) succeeded), check the `serial` > `adapter` type field in the config. The author needed to
+   explicitly set it to force the dongle to EZSP.
 
 
-<font color=red>STUCK. Dongle not recognized.
-</font>
+3. Open [localhost:8088](http://localhost:8088)
+
+   Tada!!  (hopefully)
 
 
-3. Open [localhost:8080](http://localhost:8080)
-
-   
-
+<!-- tbd.
 
 4. Attach the devices
 
-   <font color=red>tbd. Missing</font>
+   
 
 5. `Control Panel` > (device) > `Values`
 

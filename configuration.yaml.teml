@@ -4,6 +4,8 @@
 # REMOVE THIS NOTION AFTER COPYING.
 
 permit_join: true
+  # EVENTUALLY change this to 'false'
+
 mqtt:
   base_topic: zigbee2mqtt
   server: mqtt://mqtt

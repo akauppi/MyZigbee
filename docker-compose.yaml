@@ -11,7 +11,8 @@ services:
   zigbee2mqtt:
     container_name: zigbee2mqtt
     image: koenkk/zigbee2mqtt:latest
-    restart: unless-stopped
+    #restart: unless-stopped
+      # enable once it doesn't seem to need it ;)
     depends_on:
       mosquitto:
         condition: service_healthy
@@ -21,11 +22,18 @@ services:
       - /dev/ttyACM0:/dev/ttyZIGBEE
     volumes:
       - ./shared:/app/data:rw
-      - /run/udev:/run/udev:ro
+      #- /run/udev:/run/udev:ro   #Disabled. Only needed if you need to make 'udev' rules for port access over reboots.
     ports:
-      - "8080:8080"
-        
+      - "8088:8088"
+    #
+    healthcheck:
+      test: wget -nv -t1 --spider localhost:8088 || exit 1    
+      interval: 20s
+      timeout: 3s
+      #retries: 5
+
   mosquitto:
+    container_name: mqtt
     image: eclipse-mosquitto:2.0
     restart: unless-stopped
 
@@ -62,7 +70,7 @@ services:
     #
     healthcheck:
       test: mosquitto_sub -t '$$SYS/#' -E || exit 1
-      #start_period: 3s   # try long (>50s) 'interval' but one fast initial try tbd. (less logging)
-      interval: 5s
+      start_period: 5s   # try long (>50s) 'interval' but one fast initial try tbd. (less logging)
+      interval: 20s
       timeout: 3s
       retries: 5
