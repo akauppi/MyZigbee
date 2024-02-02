@@ -7,25 +7,32 @@ How I set up a minor Zigbee network, with:
 
   .. running within Docker, under Windows 10 Home
 
-## Design criteria
+## Aims
+
+Simplicity.
+
+Learning Zigbee quirks and possibilities.
+
 
 ### Safety
 
-I don't want to give the Docker container `privileged: true` rights (i.e. ability to do anything
-with the host Windows), or `networking: host` for that matter.
+I don't want to give the Docker container `privileged: true` rights (i.e. ability to do anything with the host Windows), or `networking: host` for that matter.
 
 Instead, we bridge the dongle to WSL using USB/IP.
 
 ### Persistence
 
-<!-- !todo REMOVE
-`./store` folder is used for the state of `zwave-js-ui`, so that is on the WSL file system instead of within the container.
--->
+Stateful files are kept on the WSL filesystem.
+
 
 ## Requires
 
 - WSL2 (requirement also for Docker)
 - [`usbipd-win`](https://github.com/dorssel/usbipd-win) installed
+
+   [MyZWave](https://github.com/akauppi/MyZWave?tab=readme-ov-file#steps) (GitHub) may help on this.
+
+>Do `wsl --update` in a Windows (admin) command prompt.
 
 ### Hardware used
 
@@ -40,11 +47,13 @@ Instead, we bridge the dongle to WSL using USB/IP.
 
 >*"Windows and macOS require corresponding driver installation."*
 
+>I only tried with the driver; cannot say what is the experience if you don't install it. (let me know! Would **love** to avoid driver installs.)
+
 Download from Sonoff (Windows): [link to zip](http://sonoff.tech/wp-content/uploads/2022/07/CH343SER.zip)
 
-<!-- hidden
-The link is from https://sonoff.tech/product-review/how-to-use-sonoff-dongle-plus-on-home-assistant-how-to-flash-firmware/) (visited 1-Feb-24 .
--->
+><small>The link is from https://sonoff.tech/product-review/how-to-use-sonoff-dongle-plus-on-home-assistant-how-to-flash-firmware/) (visited 1-Feb-24)</small>
+
+<p />
 
 >⚠️ Warn! Installing a driver is always a risk on your system. You don't really have a choice here, though.
 >
@@ -54,9 +63,9 @@ The link is from https://sonoff.tech/product-review/how-to-use-sonoff-dongle-plu
 - either run the `SETUP.EXE`
 - ..or right-click on the `.INF` file and > `Install`
 
->Running `SETUP.EXE` brought up a Windows safety dialog. The author yielded; installed by the `.INF`.
+>Running `SETUP.EXE` brought up a Windows safety dialog. Later, it didn't. The author yielded; installed by the `.INF`.
 
-Sonoff gives 0 guidance; likely they assume one to just shoot `SETUP` with no safety concerns. Yeah - that's the way to save the world.
+Sonoff gives ZERO GUIDANCE; likely they assume one to just shoot `SETUP` with no safety concerns. Back to 1990's?
 
 ---
 
@@ -68,19 +77,29 @@ Sonoff gives 0 guidance; likely they assume one to just shoot `SETUP` with no sa
 
 ---
 
-### Install `usbipd` on Windows host
+### Create `data.z/configuration.yaml`
 
->This is covered in [MyZWave](...).
+This file will eventually contain your network key, and info about the device you've paired. The author didn't come up with a better way than... please copy-paste the template from here. :)
 
-
-### Copy `configuration.yaml.teml` (or similar; template)
-
+```yaml
+homeassistant: false
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mqtt
+frontend:
+  port: 8088
+permit_join: true
+# Eventually, you'll turn this to 'false', right?
+serial:
+  port: /dev/ttyZIGBEE
+  adapter: ezsp
+  # This is very important - automatic discovery did NOT detect the Sonoff "plus v2" dongle correctly! 
+advanced:
+  network_key: GENERATE
+  # Zigbee2MQTT will replace this with a key
 ```
-$ cp configuration.yaml.te* shared/configuration.yaml
-```
 
-You can add the one in `shared` to your version control, but better not push it. After first `docker compose up`
-it contains the 128-bit secret for your Zigbee network.
+Note that while comments are tolerated, they will be lost eventually. Zigbee2MQTT writes stuff back to this file.
 
 
 ## Steps
@@ -139,115 +158,57 @@ it contains the 128-bit secret for your Zigbee network.
    Tada!!  (hopefully)
 
 
-<!-- tbd.
-
 4. Attach the devices
 
+   Read device specific instructions. 
+
+   >e.g. for the Wiser smoke alarm [press reset 3 times fast](https://www.productinfo.schneider-electric.com/wiser_eu/wiser-smoke-alarm-230-v_device-user-guide_wiser_se/English/Wiser%20Smoke%20Alarm%20230%20V_WSE_Device%20user%20guide_0001066064.xml/$/PairingDeviceManually_WSE_SmokeAlarm-BatteryTSK_0000854799) - or use an install code.
+
+   **Install code**
+
+   Did not work, see [this issue](https://github.com/Koenkk/zigbee2mqtt/discussions/19982).
+
+   **Manual**
+
+   - press "S/R" button thrice, within 2s
+   - LED should blink yellow
+   - Turn to Z2M and you should see:
+
+   ![](.images/smokey-is-found.png)
    
+   That's it!
 
-5. `Control Panel` > (device) > `Values`
+5. Reading data
 
-   ![](.images/zwave-switch-manual.png)
+   <font color=red>tbd.</font>
 
-   Note the `5-37-0` id - you can use it to script the particular device.
+<!--
+   ..and whatever I do with it
+   -->
 
-   >Note: Press `Configure` > `Get` if the above doesn't show.
 
-6. `Settings` > `General` > `Scheduled jobs`
+<!-- tbd.
+## Summary
+-->
 
-   ![](.images/schedules.png)
+## Notes
 
-   >NOTE!! When you do changes here - or ANY Zwave-JS-UI settings, THEY DON*T REMAIN EFFECTIVE UNLESS YOU PRESS `SAVE` AT THE BOTTOM OF THE PAGE. MAKE IT A HABIT!
-
-   - `+ NEW VALUE`
-   - Enter suitable name, cron syntax and as the script e.g. 
-
-   ![](.images/script.png)
-
-   >Note: Naturally, use the id's from the visit to the control panel, e.g. `5`, `37`, `0`.
-
-7. `Settings` > `Disable MQTT Gateway`
-
-   Doesn't matter but we don't need it.
-
-7. `Debug`
-
-   Observe that the schedules happen.
-
-## Gotchas
-
-### Editing scripts
-
-You *can* edit scripts, but it has some glitches / UX weirdness:
-
-- Cursor seems to disappear when it's at the left edge (merges with the border)
-
-   Work-around: indent *all* lines with one space!
-
-- Read `EDIT` button as "save". That's what it does.
-
-- After the "edit-save", STILL REMEMBER TO `SAVE` the whole `Settings` > `General` tab, before exiting the `Settings` area. THE UI DOES LOSE UNCHANGED CHANGES!
-
->Note. Don't know what happens if there are syntax errors in  
-
-## Summary?
-
-Having explored ZWave a bit, the author is:
-
-- pleased with ZWave-JS-UI, at least for:
-   - detecting and managing ZWave nodes
-
-- ..knows that the nodes can be automated with it, but **with restrictions**
-   - there's no good reference on how to write a "driver" (scheduled command) for a said device. 
-   - there's no visual indication if a string is syntactically correct, or not
-   - UX details (mentioned above) about editing schedules make it a bit.. unpleasant
-
-For these reasons, I will likely
-
-- set up the system with this *for now*. 
-- look into ZWave command-line scheduling possibilities, using Rust.
-
-There was no need for Home Assistant, whatsoever. It could be removed from the `docker-compose.yml`; or you could tell, how the two can be made to co-operate.
-
-## Appendices
-
-Things to help. Notes.
-
-## Usability hint
-
-The hamburger menu at lower right corner **changes based on which left-side tab you're on!!** This may be confusing at best.
-
-## Adding devices
-
-To add a device:
-
-- Select "Control panel" (default view) from left tab
-- Open `☰` > `Manage nodes`
-
-   ![](.images/manage-nodes.png)
-
-- Enter the names; triple-click the device once the UI waits for inclusion. Should be fast and clear.
-
-## Remember to update!
+### Remember to update!
 
 Docker doesn't automatically pull `:latest`. Every now and then:
 
 - `docker compose down`
 - Pull new from Docker UI, or manually
-- `docker compose up zwave-js-ui`
+- `docker pull koenkk/zigbee2mqtt:latest`
+- `docker compose up`
 
-Only way to get updates!
+### Better radio
 
-
--->
-
-## Notes
-
-- I don't use a "1,5m USB extension cable".  Ideally, one could, to bring the radio source further from a PC.
+- Use at least 50cm of a USB extension cable. Zigbee2MQTT docs have plenty on this.
 
 ### Quality in 🇨🇳
 
-Whereas some manufacturers, Espressif in particular!, provide completely great, global quality coming from China, Sonoff leaves things lacking, in documentation and attention to (English) detail.
+Sonoff leaves things lacking, in documentation and attention to (English) detail. <!-- hidden: Espressif does this great! Go learn.-->
 
 **Driver installation**
 
@@ -266,12 +227,9 @@ The experience is shady, at best.
 So far, giving Sonoff only ⭐️⭐️⭐️ stars out of 5.
 
 
-
-## Additional
-
 ### Flashing
 
-See [Flashing](./Flashing.md)
+See [Flashing](./Flashing.md).
 
 
 <!-- tbd.

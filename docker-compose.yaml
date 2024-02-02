@@ -21,7 +21,7 @@ services:
     devices:
       - /dev/ttyACM0:/dev/ttyZIGBEE
     volumes:
-      - ./shared:/app/data:rw
+      - ./data.z:/app/data:rw
       #- /run/udev:/run/udev:ro   #Disabled. Only needed if you need to make 'udev' rules for port access over reboots.
     ports:
       - "8088:8088"
@@ -48,9 +48,9 @@ services:
       #   chown: /mosquitto/config: Read-only file system
       # <<
       #
-      - ./shared.mosquitto/config:/mosquitto/config:rw
-      - ./shared.mosquitto/data:/mosquitto/data:delegated
-      - ./shared.mosquitto/log:/mosquitto/log:delegated
+      - ./data.m/config:/mosquitto/config:rw
+      - ./data.m/data:/mosquitto/data:delegated
+      - ./data.m/log:/mosquitto/log:delegated
 
     ports:
       - "1883:1883"
@@ -70,7 +70,15 @@ services:
     #
     healthcheck:
       test: mosquitto_sub -t '$$SYS/#' -E || exit 1
-      start_period: 5s   # try long (>50s) 'interval' but one fast initial try tbd. (less logging)
-      interval: 20s
+      start_period: 10s
+      start_interval: 2s
+      interval: 2m
       timeout: 3s
       retries: 5
+
+      # About the fields, see:
+      #
+      # - "health check with higher [..]" (docker/compose GitHub issue)
+      #   -> https://github.com/docker/compose/issues/10461
+      # - SO self-answer:
+      #   -> https://stackoverflow.com/a/76761303/14455
