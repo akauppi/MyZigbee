@@ -1,6 +1,8 @@
 /data.z/
 /data.m/
 
+/data.z.dev/
+
 # Firmwares
 /ncp-*.gbl
-
+/Z3*.gbl
