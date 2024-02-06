@@ -116,7 +116,29 @@ Based on this sample, pumping up power may even have a negative effect on signal
 
 - Place controllers/routers on the same floors, if possible (if going between buildings): this should reduce dampening caused by the floors
 
+### Changing channels
+
+<font color=green>**Have not played with this!**</font>
+
+Zigbee networks can be set to a certain channel (default is "11"). 
+
+- [ ] How does this reflect with a potentially congested WLAN environment?
+- [ ] Would some channels provide better range than "11"?
+
+>"Generally zigbee channels 15, 20, 25, and 26 are considered the best options."
+
+<p />
+
+>"ZHA defaults to zigbee channel 15. Z2M defaults to zigbee channel 11." <sub>[source](https://community.home-assistant.io/t/philips-hue-or-zigbee-dongle/412033/25?page=2)</sub>
+
+
+See ["Reduce Wi-Fi interference by changing the Zigbee channel"](https://www.zigbee2mqtt.io/advanced/zigbee/02_improve_network_range_and_stability.html#reduce-wi-fi-interference-by-changing-the-zigbee-channel) (Zigbee2MQTT docs)
 
 ## Ideas..? (open)
 
 - How can an Ethernet back-bone between buildings be used to extend the reach of Zigbee; or is e.g. Matter better suited for such?
+
+
+## References
+
+- ["Improve network range and stability"](https://www.zigbee2mqtt.io/advanced/zigbee/02_improve_network_range_and_stability.html) (Zigbee2MQTT docs)
